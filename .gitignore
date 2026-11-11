@@ -43,3 +43,8 @@ crashlytics-build.properties
 # TrenchBroom autosaves
 /Assets/autosave/
 /Assets/autosave.meta
+
+# Tremble — платный пакет Tiny Goose, в публичный репозиторий не кладём.
+# Купи и положи в Assets/Tremble (см. README).
+/Assets/Tremble/
+/Assets/Tremble.meta
