@@ -36,14 +36,14 @@ public class PlayerHUD : MonoBehaviour
                 Mathf.CeilToInt(playerStats.Health).ToString();
         }
 
-        // Броня / щит
+        // Р‘СЂРѕРЅСЏ / С‰РёС‚
         if (armorText != null)
         {
             armorText.text =
                 Mathf.CeilToInt(playerStats.Shield).ToString();
         }
 
-        // Стамина
+        // РЎС‚Р°РјРёРЅР°
         if (staminaSlider != null)
         {
             staminaSlider.maxValue =
@@ -65,21 +65,21 @@ public class PlayerHUD : MonoBehaviour
         if (weapon == null)
             return;
 
-        // Максимальный боезапас
+        // РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ Р±РѕРµР·Р°РїР°СЃ
         if (maxAmmoText != null)
         {
             maxAmmoText.text =
-                weapon.maxAmmo.ToString();
+                weaponController.MaxAmmo.ToString();
         }
 
-        // Текущий боезапас
+        // РўРµРєСѓС‰РёР№ Р±РѕРµР·Р°РїР°СЃ
         if (currentAmmoText != null)
         {
             currentAmmoText.text =
                 weaponController.CurrentAmmo.ToString();
         }
 
-        // Картинка оружия
+        // РљР°СЂС‚РёРЅРєР° РѕСЂСѓР¶РёСЏ
         if (weaponImage != null)
         {
             weaponImage.sprite =

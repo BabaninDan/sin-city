@@ -11,11 +11,20 @@ public class WeaponView : MonoBehaviour
 
     private void Awake()
     {
-        spriteRenderer =
-            GetComponent<SpriteRenderer>();
+        CacheComponents();
+    }
 
-        animator =
-            GetComponent<Animator>();
+    /// <summary>
+    /// Компоненты берём лениво: другие скрипты могут вызвать SetWeapon
+    /// раньше, чем отработает Awake этого объекта.
+    /// </summary>
+    private void CacheComponents()
+    {
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (animator == null)
+            animator = GetComponent<Animator>();
     }
 
     public void SetWeapon(WeaponData weapon)
@@ -23,16 +32,18 @@ public class WeaponView : MonoBehaviour
         if (weapon == null)
         {
             Debug.LogError(
-                "WeaponView: WeaponData �� ��������!",
+                "WeaponView: WeaponData не назначен!",
                 gameObject
             );
 
             return;
         }
 
+        CacheComponents();
+
         currentWeapon = weapon;
 
-        if (weapon.weaponSprite != null)
+        if (weapon.weaponSprite != null && spriteRenderer != null)
         {
             spriteRenderer.sprite =
                 weapon.weaponSprite;
@@ -43,41 +54,35 @@ public class WeaponView : MonoBehaviour
 
     public void PlayDraw()
     {
-        if (currentWeapon == null)
-            return;
-
-        animator.Play(
-            currentWeapon.drawAnimation
-        );
+        Play(currentWeapon != null ? currentWeapon.drawAnimation : null);
     }
 
     public void PlayIdle()
     {
-        if (currentWeapon == null)
-            return;
-
-        animator.Play(
-            currentWeapon.idleAnimation
-        );
+        Play(currentWeapon != null ? currentWeapon.idleAnimation : null);
     }
 
     public void PlayShoot()
     {
-        if (currentWeapon == null)
-            return;
-
-        animator.Play(
-            currentWeapon.shootAnimation
-        );
+        Play(currentWeapon != null ? currentWeapon.shootAnimation : null);
     }
 
     public void PlayReload()
     {
-        if (currentWeapon == null)
+        Play(currentWeapon != null ? currentWeapon.reloadAnimation : null);
+    }
+
+    private void Play(string animationName)
+    {
+        if (string.IsNullOrEmpty(animationName))
             return;
 
-        animator.Play(
-            currentWeapon.reloadAnimation
-        );
+        CacheComponents();
+
+        // Animator на выключенном объекте не проигрывает анимации
+        if (animator == null || !animator.isActiveAndEnabled)
+            return;
+
+        animator.Play(animationName, 0, 0f);
     }
 }

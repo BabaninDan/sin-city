@@ -1,6 +1,24 @@
+using System;
+using System.Collections.Generic;
+using TinyGoose.Tremble;
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>Выбор масти врага в TrenchBroom / инспекторе.</summary>
+public enum EnemySuitChoice
+{
+    Random,
+    Hearts,
+    Diamonds,
+    Clubs,
+    Spades
+}
+
+/// <summary>
+/// Базовый враг: спрайт-билборд с направлениями (Front/Back/Left/Right),
+/// NavMesh-движение, масть, урон, оглушение, дроп.
+/// Конкретное поведение — в наследниках (EnemyShuler, EnemyCroupier, EnemyBouncer).
+/// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyBase : MonoBehaviour, IDamageable
 {
@@ -22,6 +40,16 @@ public class EnemyBase : MonoBehaviour, IDamageable
         Attack
     }
 
+    /// <summary>Все живые враги на сцене.</summary>
+    public static readonly List<EnemyBase> All = new List<EnemyBase>();
+
+    [Header("Arena")]
+    [Tooltip("ID арены (как у arena_trigger). Пусто — враг сам по себе.")]
+    [SerializeField] protected string arena = "";
+
+    [Header("Suit")]
+    [SerializeField] protected EnemySuitChoice suit = EnemySuitChoice.Random;
+
     [Header("Movement")]
     [SerializeField] protected float moveSpeed = 4f;
     [SerializeField] protected float stopDistance = 1.5f;
@@ -29,48 +57,84 @@ public class EnemyBase : MonoBehaviour, IDamageable
     [Header("Health")]
     [SerializeField] protected float maxHealth = 100f;
 
-    [Header("Target")]
-    [SerializeField] protected Transform target;
     [Header("Detection")]
-    [SerializeField] private float viewDistance = 15f;
+    [SerializeField] private float viewDistance = 25f;
 
-    private bool hasSeenTarget;
+    [Header("Drops")]
+    [SerializeField] protected int souls = 5;
+    [SerializeField, Range(0f, 1f)] protected float ammoDropChance = 0f;
+    [SerializeField] protected int ammoDropAmount = 20;
+    [SerializeField, Range(0f, 1f)] protected float healthDropChance = 0.1f;
+
+    [Header("Hit reaction")]
+    [SerializeField] protected float hitStunTime = 0.12f;
+    [SerializeField] protected float knockbackForce = 4f;
+
+    [Header("Target")]
+    [SerializeField, NoTremble] protected Transform target;
 
     [Header("Visual")]
-    [SerializeField] private Transform visual;
-    [SerializeField] private Animator animator;
+    [SerializeField, NoTremble] private Transform visual;
+    [SerializeField, NoTremble] private Animator animator;
+    [SerializeField, NoTremble] private SpriteRenderer spriteRenderer;
+    [SerializeField, NoTremble] private Color tint = Color.white;
 
     [Header("Direction")]
-    [Tooltip("����, � �������� �������� ����� ��������� ����������� �������.")]
+    [Tooltip("Угол, в пределах которого игрок считается находящимся спереди.")]
     [SerializeField] private float frontAngle = 45f;
 
-    [Tooltip("����, � �������� �������� ����� ��������� ����������� �����.")]
+    [Tooltip("Угол, в пределах которого игрок считается находящимся сзади.")]
     [SerializeField] private float backAngle = 45f;
 
     protected NavMeshAgent agent;
+    protected PlayerStats player;
+    protected PlayerMovement playerMovement;
 
     protected float currentHealth;
-
     protected EnemyDirection currentDirection;
     protected EnemyState currentState;
 
-    private bool isDead;
+    protected float distanceToTarget;
+    protected bool hasLineOfSight;
 
+    private CardSuit resolvedSuit;
+    private bool hasSeenTarget;
+    private bool isDead;
     private string currentAnimation;
+    private HashSet<string> clipNames;
+
+    private float stunTimer;
+    private float flashTimer;
+    private float telegraph;
+    private float repathTimer;
+    private float losTimer;
+    private float spawnTimer;
+    private Vector3 visualBaseScale = Vector3.one;
+    private Vector3 knockbackVelocity;
+
+    private SuitMarker marker;
 
     public float Health => currentHealth;
     public float MaxHealth => maxHealth;
-
     public float MoveSpeed => moveSpeed;
-
     public bool HasTarget => target != null;
-
     public bool IsDead => isDead;
-
+    public bool IsActive => hasSeenTarget;
+    public CardSuit Suit => resolvedSuit;
+    public string Arena => arena;
     public EnemyDirection CurrentDirection => currentDirection;
-
     public EnemyState CurrentState => currentState;
 
+    /// <summary>Точка прицеливания (центр тела).</summary>
+    public Vector3 AimPoint => transform.position + Vector3.up * AimHeight;
+
+    protected virtual float AimHeight => 1.1f * transform.localScale.y;
+
+    public event Action<EnemyBase> Died;
+
+    // =========================================================
+    // LIFECYCLE
+    // =========================================================
 
     protected virtual void Awake()
     {
@@ -80,40 +144,68 @@ public class EnemyBase : MonoBehaviour, IDamageable
 
         agent.speed = moveSpeed;
         agent.stoppingDistance = stopDistance;
+        agent.acceleration = Mathf.Max(agent.acceleration, moveSpeed * 6f);
+        agent.angularSpeed = 720f;
 
-        // ��������� �� ������� ����.
+        // Навигация не вращает моба — поворачиваем сами
         agent.updateRotation = false;
 
-        FindTarget();
+        resolvedSuit = suit == EnemySuitChoice.Random
+            ? SuitUtil.RandomSuit()
+            : (CardSuit)((int)suit - 1);
 
         if (visual == null)
         {
-            Transform foundVisual =
-                transform.Find("Visual");
+            Transform foundVisual = transform.Find("Visual");
 
             if (foundVisual != null)
                 visual = foundVisual;
         }
 
-        if (animator == null && visual != null)
+        if (visual != null)
         {
-            animator =
-                visual.GetComponent<Animator>();
+            if (animator == null)
+                animator = visual.GetComponent<Animator>();
+
+            if (spriteRenderer == null)
+                spriteRenderer = visual.GetComponent<SpriteRenderer>();
+
+            visualBaseScale = visual.localScale;
         }
+
+        CacheClips();
 
         currentDirection = EnemyDirection.Front;
         currentState = EnemyState.Idle;
 
         PlayAnimation();
+
+        marker = SuitMarker.Create(this);
+
+        spawnTimer = 0.35f;
     }
 
+    protected virtual void OnEnable()
+    {
+        All.Add(this);
+    }
+
+    protected virtual void OnDisable()
+    {
+        All.Remove(this);
+    }
 
     protected virtual void Update()
     {
+        UpdateVisualFx();
+
         if (isDead)
             return;
 
-        if (target == null)
+        if (!EnsureAgent())
+            return;
+
+        if (target == null || player == null)
         {
             FindTarget();
 
@@ -124,13 +216,20 @@ public class EnemyBase : MonoBehaviour, IDamageable
             }
         }
 
-        // ���� ��� ��� �� ������ ������
+        distanceToTarget = Vector3.Distance(transform.position, target.position);
+
+        losTimer -= Time.deltaTime;
+        if (losTimer <= 0f)
+        {
+            losTimer = 0.15f;
+            hasLineOfSight = IsVisibleFrom(target.position + Vector3.up * 0.5f);
+        }
+
+        // Пока моб ещё не увидел игрока
         if (!hasSeenTarget)
         {
             if (CanSeeTarget())
-            {
-                hasSeenTarget = true;
-            }
+                Activate();
             else
             {
                 SetState(EnemyState.Idle);
@@ -138,101 +237,277 @@ public class EnemyBase : MonoBehaviour, IDamageable
             }
         }
 
-        UpdateMovement();
-        UpdateDirection();
-        UpdateAnimation();
-    }
+        if (player != null && player.IsDead)
+        {
+            StopMoving();
+            SetState(EnemyState.Idle);
+            return;
+        }
 
+        ApplyKnockback();
+
+        if (stunTimer > 0f)
+        {
+            stunTimer -= Time.deltaTime;
+            StopMoving();
+        }
+        else
+        {
+            UpdateCombat();
+        }
+
+        UpdateFacing();
+        UpdateDirection();
+        UpdateMovementAnimation();
+    }
 
     protected virtual void LateUpdate()
     {
         UpdateBillboard();
     }
+
+    // =========================================================
+    // NAVMESH
+    // =========================================================
+
+    /// <summary>Агент включается только когда NavMesh построен.</summary>
+    private bool EnsureAgent()
+    {
+        if (agent.enabled && agent.isOnNavMesh)
+            return true;
+
+        if (!GameManager.NavMeshReady && GameManager.Instance != null)
+            return false;
+
+        if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 4f, NavMesh.AllAreas))
+        {
+            agent.enabled = true;
+            agent.Warp(hit.position);
+            return agent.isOnNavMesh;
+        }
+
+        return false;
+    }
+
+    protected void MoveTo(Vector3 destination, float speedMultiplier = 1f)
+    {
+        if (!agent.isOnNavMesh)
+            return;
+
+        agent.speed = moveSpeed * speedMultiplier;
+        agent.isStopped = false;
+
+        repathTimer -= Time.deltaTime;
+
+        if (repathTimer <= 0f || agent.destination == Vector3.zero)
+        {
+            repathTimer = 0.2f;
+            agent.SetDestination(destination);
+        }
+    }
+
+    protected void StopMoving()
+    {
+        if (agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
+        }
+    }
+
+    /// <summary>Сдвиг без поиска пути (рывок, отталкивание).</summary>
+    protected void Shove(Vector3 offset)
+    {
+        if (agent.isOnNavMesh)
+            agent.Move(offset);
+    }
+
+    private void ApplyKnockback()
+    {
+        if (knockbackVelocity.sqrMagnitude < 0.01f)
+            return;
+
+        Shove(knockbackVelocity * Time.deltaTime);
+        knockbackVelocity = Vector3.MoveTowards(knockbackVelocity, Vector3.zero, 30f * Time.deltaTime);
+    }
+
+    // =========================================================
+    // TARGET
+    // =========================================================
+
+    private void FindTarget()
+    {
+        PlayerStats stats = GameManager.Instance != null
+            ? GameManager.Instance.Player
+            : FindAnyObjectByType<PlayerStats>();
+
+        if (stats == null)
+        {
+            GameObject tagged = GameObject.FindGameObjectWithTag("Player");
+
+            if (tagged != null)
+                stats = tagged.GetComponent<PlayerStats>();
+        }
+
+        if (stats == null)
+            return;
+
+        player = stats;
+        target = stats.transform;
+        playerMovement = stats.GetComponent<PlayerMovement>();
+    }
+
     private bool CanSeeTarget()
     {
         if (target == null)
             return false;
 
-        Vector3 toTarget =
-            target.position - transform.position;
-
-        // �� ��������� ������
+        Vector3 toTarget = target.position - transform.position;
         toTarget.y = 0f;
 
         float distance = toTarget.magnitude;
 
-        // ����� ������� ������
         if (distance > viewDistance)
             return false;
 
-        if (distance < 0.001f)
-            return true;
+        if (!hasLineOfSight)
+            return false;
 
-        toTarget.Normalize();
+        // Вплотную — замечает в любом случае
+        if (distance < 8f)
+            return true;
 
         Vector3 forward = transform.forward;
         forward.y = 0f;
-        forward.Normalize();
 
-        float angle =
-            Vector3.Angle(forward, toTarget);
-
-        // ����� ��������� ������ Front-�������
-        return angle <= frontAngle;
+        return Vector3.Angle(forward, toTarget) <= frontAngle;
     }
 
-    private void FindTarget()
+    /// <summary>Нет ли стены между точкой и врагом.</summary>
+    public bool IsVisibleFrom(Vector3 from)
     {
-        if (target != null)
-            return;
+        Vector3 to = AimPoint;
+        Vector3 dir = to - from;
+        float dist = dir.magnitude;
 
-        GameObject player =
-            GameObject.FindGameObjectWithTag("Player");
+        if (dist < 0.01f)
+            return true;
 
-        if (player != null)
-            target = player.transform;
-    }
+        RaycastHit[] hits = Physics.RaycastAll(from, dir / dist, dist, ~0, QueryTriggerInteraction.Ignore);
 
-
-    protected virtual void UpdateMovement()
-    {
-        if (!agent.isOnNavMesh)
-            return;
-
-        float distance =
-            Vector3.Distance(
-                transform.position,
-                target.position
-            );
-
-        if (distance > stopDistance)
+        foreach (RaycastHit hit in hits)
         {
-            agent.isStopped = false;
+            Transform t = hit.collider.transform;
 
-            agent.SetDestination(
-                target.position
-            );
+            if (t.IsChildOf(transform))
+                continue;
 
-            SetState(EnemyState.Run);
+            // Сквозь других врагов, игрока и пикапы видно
+            if (hit.collider.GetComponentInParent<EnemyBase>() != null)
+                continue;
+
+            if (hit.collider.GetComponentInParent<PlayerStats>() != null)
+                continue;
+
+            if (hit.collider.attachedRigidbody != null && !hit.collider.attachedRigidbody.isKinematic)
+                continue;
+
+            return false;
         }
+
+        return true;
+    }
+
+    /// <summary>Разбудить (старт арены, попадание, увидел игрока).</summary>
+    public void Activate()
+    {
+        if (hasSeenTarget)
+            return;
+
+        hasSeenTarget = true;
+        OnActivated();
+    }
+
+    protected virtual void OnActivated()
+    {
+    }
+
+    // =========================================================
+    // COMBAT (переопределяется наследниками)
+    // =========================================================
+
+    protected virtual void UpdateCombat()
+    {
+        if (distanceToTarget > stopDistance)
+            MoveTo(target.position);
         else
-        {
-            agent.isStopped = true;
-
-            SetState(EnemyState.Idle);
-        }
+            StopMoving();
     }
 
+    /// <summary>Ударить игрока, если он в радиусе.</summary>
+    protected bool TryDamagePlayer(float range, float damage, float knockback, float upForce = 2f)
+    {
+        if (player == null || player.IsDead)
+            return false;
+
+        Vector3 flat = target.position - transform.position;
+        flat.y = 0f;
+
+        if (flat.magnitude > range)
+            return false;
+
+        Vector3 dir = flat.sqrMagnitude > 0.001f ? flat.normalized : transform.forward;
+
+        player.TakeDamage(damage, dir);
+
+        if (playerMovement != null)
+            playerMovement.AddImpulse(dir * knockback + Vector3.up * upForce);
+
+        return true;
+    }
+
+    /// <summary>Подсветка перед атакой (0..1).</summary>
+    protected void SetTelegraph(float amount)
+    {
+        telegraph = Mathf.Clamp01(amount);
+    }
+
+    protected Vector3 FlatDirectionToTarget()
+    {
+        Vector3 d = target.position - transform.position;
+        d.y = 0f;
+        return d.sqrMagnitude > 0.001f ? d.normalized : transform.forward;
+    }
+
+    // =========================================================
+    // FACING / DIRECTION / ANIMATION
+    // =========================================================
+
+    /// <summary>Куда смотрит враг: при движении — по ходу, иначе — на игрока.</summary>
+    protected virtual void UpdateFacing()
+    {
+        Vector3 look = agent.isOnNavMesh ? agent.velocity : Vector3.zero;
+        look.y = 0f;
+
+        if (look.sqrMagnitude < 0.5f && target != null)
+            look = FlatDirectionToTarget();
+
+        if (look.sqrMagnitude < 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 540f * Time.deltaTime);
+    }
 
     protected virtual void UpdateDirection()
     {
-        if (target == null)
+        Camera cam = Camera.main;
+
+        if (cam == null)
             return;
 
-        Vector3 toPlayer =
-            target.position - transform.position;
-
-        // �� ��������� ������.
+        // Направление спрайта считаем относительно камеры игрока
+        Vector3 toPlayer = cam.transform.position - transform.position;
         toPlayer.y = 0f;
 
         if (toPlayer.sqrMagnitude < 0.001f)
@@ -249,66 +524,34 @@ public class EnemyBase : MonoBehaviour, IDamageable
         forward.Normalize();
         right.Normalize();
 
-        float forwardAngle =
-            Vector3.Angle(forward, toPlayer);
+        float forwardAngle = Vector3.Angle(forward, toPlayer);
+        float backAngleFromForward = Vector3.Angle(-forward, toPlayer);
 
-        float backAngleFromForward =
-            Vector3.Angle(-forward, toPlayer);
-
-        /*
-         * FRONT
-         *
-         * ����� ��������� ������ ������
-         * ����� �����.
-         */
         if (forwardAngle <= frontAngle)
         {
-            SetDirection(
-                EnemyDirection.Front
-            );
-
+            SetDirection(EnemyDirection.Front);
             return;
         }
 
-        /*
-         * BACK
-         *
-         * ����� ��������� ������ ������
-         * ������ ����.
-         */
         if (backAngleFromForward <= backAngle)
         {
-            SetDirection(
-                EnemyDirection.Back
-            );
-
+            SetDirection(EnemyDirection.Back);
             return;
         }
 
-        /*
-         * LEFT / RIGHT
-         *
-         * ���� ����� �� ������� � �� �����,
-         * ������� �� ����� ������� �� ������.
-         */
+        float rightDot = Vector3.Dot(right, toPlayer);
 
-        float rightDot =
-            Vector3.Dot(right, toPlayer);
-
-        if (rightDot > 0f)
-        {
-            SetDirection(
-                EnemyDirection.Right
-            );
-        }
-        else
-        {
-            SetDirection(
-                EnemyDirection.Left
-            );
-        }
+        SetDirection(rightDot > 0f ? EnemyDirection.Right : EnemyDirection.Left);
     }
 
+    private void UpdateMovementAnimation()
+    {
+        if (currentState == EnemyState.Attack)
+            return;
+
+        bool moving = agent.isOnNavMesh && agent.velocity.sqrMagnitude > 0.2f;
+        SetState(moving ? EnemyState.Run : EnemyState.Idle);
+    }
 
     private void UpdateBillboard()
     {
@@ -320,25 +563,16 @@ public class EnemyBase : MonoBehaviour, IDamageable
         if (cam == null)
             return;
 
-        Vector3 direction =
-            cam.transform.position -
-            visual.position;
-
+        Vector3 direction = cam.transform.position - visual.position;
         direction.y = 0f;
 
         if (direction.sqrMagnitude < 0.001f)
             return;
 
-        visual.rotation =
-            Quaternion.LookRotation(
-                direction.normalized,
-                Vector3.up
-            );
+        visual.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
     }
 
-
-    protected void SetDirection(
-        EnemyDirection direction)
+    protected void SetDirection(EnemyDirection direction)
     {
         if (currentDirection == direction)
             return;
@@ -348,9 +582,7 @@ public class EnemyBase : MonoBehaviour, IDamageable
         PlayAnimation();
     }
 
-
-    protected void SetState(
-        EnemyState state)
+    protected void SetState(EnemyState state)
     {
         if (isDead &&
             state != EnemyState.DieProcess &&
@@ -367,91 +599,145 @@ public class EnemyBase : MonoBehaviour, IDamageable
         PlayAnimation();
     }
 
-
-    private void UpdateAnimation()
+    private void CacheClips()
     {
-        PlayAnimation();
+        clipNames = new HashSet<string>();
+
+        if (animator == null || animator.runtimeAnimatorController == null)
+            return;
+
+        foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+            clipNames.Add(clip.name);
     }
 
-
+    /// <summary>
+    /// Ищет анимацию "Направление_Состояние".
+    /// Если её нет — пробует Idle этого направления, затем Front_Idle.
+    /// (Так враги работают, даже если нарисованы не все анимации.)
+    /// </summary>
     private void PlayAnimation()
     {
-        if (animator == null)
+        if (animator == null || clipNames == null || clipNames.Count == 0)
             return;
 
-        string animationName =
-            currentDirection.ToString() +
-            "_" +
-            currentState.ToString();
+        string dir = currentDirection.ToString();
 
-        if (currentAnimation == animationName)
+        // Спины пока нет — показываем лицо
+        if (currentDirection == EnemyDirection.Back && !clipNames.Contains("Back_Idle"))
+            dir = EnemyDirection.Front.ToString();
+
+        string animationName = dir + "_" + currentState;
+
+        if (!clipNames.Contains(animationName))
+            animationName = dir + "_Idle";
+
+        if (!clipNames.Contains(animationName))
+            animationName = "Front_Idle";
+
+        if (!clipNames.Contains(animationName) || currentAnimation == animationName)
             return;
-
-        if (!HasAnimation(animationName))
-        {
-            Debug.LogWarning(
-                $"{gameObject.name}: " +
-                $"�������� '{animationName}' " +
-                $"�� ������� � Animator.",
-                gameObject
-            );
-
-            return;
-        }
 
         animator.Play(animationName);
-
         currentAnimation = animationName;
     }
 
+    // =========================================================
+    // VISUAL FX (вспышка при попадании, замах, появление)
+    // =========================================================
 
-    private bool HasAnimation(
-        string animationName)
+    private void UpdateVisualFx()
     {
-        if (animator == null)
-            return false;
+        if (visual == null)
+            return;
 
-        RuntimeAnimatorController controller =
-            animator.runtimeAnimatorController;
+        float scale = 1f;
 
-        if (controller == null)
-            return false;
-
-        foreach (AnimationClip clip
-            in controller.animationClips)
+        if (spawnTimer > 0f)
         {
-            if (clip.name == animationName)
-                return true;
+            spawnTimer -= Time.deltaTime;
+            scale = 1f - Mathf.Clamp01(spawnTimer / 0.35f);
+            scale = 1f - (1f - scale) * (1f - scale);
         }
 
-        return false;
+        // Пульсация при замахе
+        scale *= 1f + telegraph * 0.08f * (0.5f + 0.5f * Mathf.Sin(Time.time * 40f));
+
+        // Сплющивание от удара
+        float squash = flashTimer > 0f ? flashTimer / 0.1f : 0f;
+
+        visual.localScale = new Vector3(
+            visualBaseScale.x * scale * (1f + squash * 0.12f),
+            visualBaseScale.y * scale * (1f - squash * 0.1f),
+            visualBaseScale.z
+        );
+
+        if (spriteRenderer != null)
+        {
+            Color color = tint;
+
+            if (telegraph > 0f)
+                color = Color.Lerp(color, new Color(1f, 0.85f, 0.3f), telegraph * 0.6f);
+
+            if (flashTimer > 0f)
+            {
+                flashTimer -= Time.deltaTime;
+                color = Color.Lerp(color, new Color(1f, 0.2f, 0.2f), 0.8f);
+            }
+
+            if (isDead)
+                color.a = 0f;
+
+            spriteRenderer.color = color;
+        }
     }
 
+    // =========================================================
+    // DAMAGE
+    // =========================================================
 
     public virtual void TakeDamage(float damage)
     {
-        if (isDead)
+        TakeHit(damage, Vector3.zero, false, AimPoint);
+    }
+
+    /// <summary>
+    /// Попадание: урон, отбрасывание, оглушение, эффекты.
+    /// </summary>
+    public virtual void TakeHit(float damage, Vector3 direction, bool suitMatch, Vector3 point, bool fromJoker = false)
+    {
+        if (isDead || damage <= 0f)
             return;
 
-        if (damage <= 0f)
-            return;
+        Activate();
 
         currentHealth -= damage;
 
-        Debug.Log(
-            $"{gameObject.name} ������� " +
-            $"{damage} �����. " +
-            $"HP: {currentHealth}/{maxHealth}"
-        );
+        flashTimer = 0.1f;
+        stunTimer = Mathf.Max(stunTimer, hitStunTime * (suitMatch ? 1.5f : 1f));
+
+        Vector3 flat = direction;
+        flat.y = 0f;
+
+        if (flat.sqrMagnitude > 0.001f)
+            knockbackVelocity += flat.normalized * knockbackForce * (suitMatch ? 1.5f : 1f);
+
+        FX.Blood(point, suitMatch ? 1.4f : 0.8f);
+
+        if (suitMatch)
+            FX.Sparks(point, resolvedSuit.WorldColor());
+
+        if (marker != null)
+            marker.Pulse(suitMatch);
+
+        HitFeedback.Report(point, damage, suitMatch, currentHealth <= 0f);
+        GameState.RaiseEnemyHit(this, damage, suitMatch);
 
         if (currentHealth <= 0f)
         {
             currentHealth = 0f;
-
             Die();
         }
     }
-
 
     protected virtual void Die()
     {
@@ -460,77 +746,117 @@ public class EnemyBase : MonoBehaviour, IDamageable
 
         isDead = true;
 
-        if (agent != null &&
-            agent.isOnNavMesh)
+        if (agent != null && agent.isOnNavMesh)
         {
             agent.isStopped = true;
             agent.ResetPath();
         }
 
-        SetState(
-            EnemyState.DieProcess
-        );
+        SetState(EnemyState.DieProcess);
+
+        // Жестокость
+        FX.Blood(AimPoint, 3f);
+        FX.Blood(transform.position + Vector3.up * 0.3f, 2f);
+        FX.Burst(AimPoint, resolvedSuit.WorldColor(), 12, 5f, 0.2f, 0.7f, 1f);
+
+        DropLoot();
+
+        foreach (Collider col in GetComponentsInChildren<Collider>())
+            col.enabled = false;
+
+        if (marker != null)
+            Destroy(marker.gameObject);
+
+        GameState.RaiseEnemyKilled(this);
+        Died?.Invoke(this);
+
+        // Анимаций смерти пока нет — исчезаем сразу
+        Destroy(gameObject, 0.05f);
     }
 
+    protected virtual void DropLoot()
+    {
+        Vector3 pos = transform.position + Vector3.up * 0.8f;
+
+        int soulCount = Mathf.Max(0, souls);
+
+        // Несколько фишек душ разлетаются в стороны
+        int pieces = Mathf.Clamp(soulCount / 3, 1, 6);
+        int perPiece = Mathf.Max(1, soulCount / pieces);
+
+        for (int i = 0; i < pieces && soulCount > 0; i++)
+        {
+            int amount = i == pieces - 1 ? soulCount : perPiece;
+            soulCount -= amount;
+            Pickup.Spawn(Pickup.Kind.Soul, pos, amount);
+        }
+
+        if (UnityEngine.Random.value < ammoDropChance)
+            Pickup.Spawn(Pickup.Kind.ChipAmmo, pos, ammoDropAmount);
+
+        if (UnityEngine.Random.value < healthDropChance)
+            Pickup.Spawn(Pickup.Kind.Health, pos, 20);
+    }
+
+    // =========================================================
+    // ANIMATION EVENTS (для будущих анимаций смерти/атаки)
+    // =========================================================
 
     public void AnimationDeath()
     {
         if (!isDead)
             return;
 
-        SetState(
-            EnemyState.Die
-        );
+        SetState(EnemyState.Die);
     }
-
 
     public void DestroyEnemy()
     {
         Destroy(gameObject);
     }
 
-
     public void SetAttackAnimation()
     {
         if (isDead)
             return;
 
-        SetState(
-            EnemyState.Attack
-        );
+        SetState(EnemyState.Attack);
     }
-
 
     public void SetFallAnimation()
     {
         if (isDead)
             return;
 
-        SetState(
-            EnemyState.Fall
-        );
+        SetState(EnemyState.Fall);
     }
-
 
     public void SetIdleAnimation()
     {
         if (isDead)
             return;
 
-        SetState(
-            EnemyState.Idle
-        );
+        SetState(EnemyState.Idle);
     }
-
 
     public void SetRunAnimation()
     {
         if (isDead)
             return;
 
-        SetState(
-            EnemyState.Run
-        );
+        SetState(EnemyState.Run);
+    }
+
+    /// <summary>Настройка из EnemySpawn.</summary>
+    public void Configure(string arenaId, EnemySuitChoice suitChoice)
+    {
+        arena = arenaId;
+
+        if (suitChoice != EnemySuitChoice.Random)
+            resolvedSuit = (CardSuit)((int)suitChoice - 1);
+
+        if (marker != null)
+            marker.Refresh();
     }
 
     private void OnDrawGizmosSelected()
@@ -541,62 +867,19 @@ public class EnemyBase : MonoBehaviour, IDamageable
         forward.y = 0f;
         forward.Normalize();
 
-        // ����������� �����������
+        // Центральное направление
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(origin, forward * 3f);
 
-        // ����� ������� Front
-        Vector3 leftBoundary =
-            Quaternion.AngleAxis(-frontAngle, Vector3.up)
-            * forward;
-
-        // ������ ������� Front
-        Vector3 rightBoundary =
-            Quaternion.AngleAxis(frontAngle, Vector3.up)
-            * forward;
+        // Границы Front
+        Vector3 leftBoundary = Quaternion.AngleAxis(-frontAngle, Vector3.up) * forward;
+        Vector3 rightBoundary = Quaternion.AngleAxis(frontAngle, Vector3.up) * forward;
 
         Gizmos.color = Color.green;
+        Gizmos.DrawRay(origin, leftBoundary * 3f);
+        Gizmos.DrawRay(origin, rightBoundary * 3f);
 
-        Gizmos.DrawRay(
-            origin,
-            leftBoundary * 3f
-        );
-
-        Gizmos.DrawRay(
-            origin,
-            rightBoundary * 3f
-        );
-
-        // ���� �������
-        int segments = 20;
-
-        Vector3 previousPoint =
-            origin + leftBoundary * 3f;
-
-        for (int i = 1; i <= segments; i++)
-        {
-            float angle =
-                Mathf.Lerp(
-                    -frontAngle,
-                    frontAngle,
-                    i / (float)segments
-                );
-
-            Vector3 direction =
-                Quaternion.AngleAxis(
-                    angle,
-                    Vector3.up
-                ) * forward;
-
-            Vector3 point =
-                origin + direction * 3f;
-
-            Gizmos.DrawLine(
-                previousPoint,
-                point
-            );
-
-            previousPoint = point;
-        }
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.4f);
+        Gizmos.DrawWireSphere(transform.position, viewDistance);
     }
 }

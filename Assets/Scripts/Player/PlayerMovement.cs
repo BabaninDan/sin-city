@@ -108,7 +108,7 @@ public class PlayerMovement : MonoBehaviour
         if (controller == null)
         {
             Debug.LogError(
-                "PlayerMovement: CharacterController не найден на Player!",
+                "PlayerMovement: CharacterController РЅРµ РЅР°Р№РґРµРЅ РЅР° Player!",
                 gameObject
             );
         }
@@ -127,13 +127,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        ReadInput();
+        // РњРµРЅСЋ / СЃРјРµСЂС‚СЊ вЂ” РїРµСЂСЃРѕРЅР°Р¶ РЅРµ СЃР»СѓС€Р°РµС‚СЃСЏ
+        bool inputBlocked = GameState.InputBlocked || GameState.PlayerDead;
+
+        if (inputBlocked)
+            moveInput = Vector2.zero;
+        else
+            ReadInput();
 
         CheckGround();
 
-        HandleJump();
+        if (!inputBlocked)
+            HandleJump();
 
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (!inputBlocked && Input.GetKeyDown(KeyCode.LeftShift))
         {
             TryDash();
         }
@@ -200,7 +207,7 @@ public class PlayerMovement : MonoBehaviour
 
         slideTimer -= Time.deltaTime;
 
-        // Постепенно теряем скорость
+        // РџРѕСЃС‚РµРїРµРЅРЅРѕ С‚РµСЂСЏРµРј СЃРєРѕСЂРѕСЃС‚СЊ
         horizontalVelocity = Vector3.MoveTowards(
             horizontalVelocity,
             Vector3.zero,
@@ -222,11 +229,11 @@ public class PlayerMovement : MonoBehaviour
         if (!IsGrounded)
             return;
 
-        // Нужно хотя бы немного двигаться
+        // РќСѓР¶РЅРѕ С…РѕС‚СЏ Р±С‹ РЅРµРјРЅРѕРіРѕ РґРІРёРіР°С‚СЊСЃСЏ
         if (horizontalVelocity.magnitude < moveSpeed * 0.5f)
             return;
 
-        // Проверяем стамину
+        // РџСЂРѕРІРµСЂСЏРµРј СЃС‚Р°РјРёРЅСѓ
         if (stats != null)
         {
             if (!stats.TryUseStamina(slideStaminaCost))
@@ -236,17 +243,17 @@ public class PlayerMovement : MonoBehaviour
         isSliding = true;
         slideTimer = slideDuration;
 
-        // Направление текущего движения
+        // РќР°РїСЂР°РІР»РµРЅРёРµ С‚РµРєСѓС‰РµРіРѕ РґРІРёР¶РµРЅРёСЏ
         Vector3 slideDirection =
             horizontalVelocity.normalized;
 
-        // Небольшой буст
+        // РќРµР±РѕР»СЊС€РѕР№ Р±СѓСЃС‚
         horizontalVelocity +=
             slideDirection * slideBoost;
 
         LimitHorizontalSpeed();
 
-        // Уменьшаем хитбокс
+        // РЈРјРµРЅСЊС€Р°РµРј С…РёС‚Р±РѕРєСЃ
         controller.height = slideHeight;
 
         controller.center = new Vector3(
@@ -316,7 +323,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 forward = cameraTransform.forward;
         Vector3 right = cameraTransform.right;
 
-        // Не учитываем наклон камеры вверх/вниз
+        // РќРµ СѓС‡РёС‚С‹РІР°РµРј РЅР°РєР»РѕРЅ РєР°РјРµСЂС‹ РІРІРµСЂС…/РІРЅРёР·
         forward.y = 0f;
         right.y = 0f;
 
@@ -384,8 +391,8 @@ public class PlayerMovement : MonoBehaviour
 
             float currentSpeed = horizontalVelocity.magnitude;
 
-            // В воздухе сохраняем набранную скорость,
-            // но позволяем менять направление
+            // Р’ РІРѕР·РґСѓС…Рµ СЃРѕС…СЂР°РЅСЏРµРј РЅР°Р±СЂР°РЅРЅСѓСЋ СЃРєРѕСЂРѕСЃС‚СЊ,
+            // РЅРѕ РїРѕР·РІРѕР»СЏРµРј РјРµРЅСЏС‚СЊ РЅР°РїСЂР°РІР»РµРЅРёРµ
             horizontalVelocity = Vector3.MoveTowards(
                 horizontalVelocity,
                 targetDirection * Mathf.Max(currentSpeed, moveSpeed),
@@ -418,7 +425,7 @@ public class PlayerMovement : MonoBehaviour
         if (!Input.GetKeyDown(KeyCode.Space))
             return;
 
-        // Первый прыжок
+        // РџРµСЂРІС‹Р№ РїСЂС‹Р¶РѕРє
         if (controller.isGrounded)
         {
             verticalVelocity = jumpForce;
@@ -426,7 +433,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Второй прыжок
+        // Р’С‚РѕСЂРѕР№ РїСЂС‹Р¶РѕРє
         if (jumpsUsed < maxJumps)
         {
             verticalVelocity = doubleJumpForce;
@@ -468,7 +475,7 @@ public class PlayerMovement : MonoBehaviour
 
         direction.Normalize();
 
-        // Тратим стамину
+        // РўСЂР°С‚РёРј СЃС‚Р°РјРёРЅСѓ
         if (stats != null)
         {
 
@@ -483,7 +490,7 @@ public class PlayerMovement : MonoBehaviour
         isDashing = true;
         dashTimer = dashDuration;
 
-        // Задаём скорость рывка
+        // Р—Р°РґР°С‘Рј СЃРєРѕСЂРѕСЃС‚СЊ СЂС‹РІРєР°
         horizontalVelocity = dashDirection * dashSpeed;
     }
 
@@ -543,6 +550,35 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public Vector3 HorizontalVelocity => horizontalVelocity;
+
+    /// <summary>РњРіРЅРѕРІРµРЅРЅРѕ РїРµСЂРµРЅРµСЃС‚Рё РёРіСЂРѕРєР° (РїРµСЂРµС…РѕРґ РјРµР¶РґСѓ РєРѕРјРЅР°С‚Р°РјРё).</summary>
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        bool wasEnabled = controller.enabled;
+        controller.enabled = false;
+
+        transform.SetPositionAndRotation(position, rotation);
+
+        horizontalVelocity = Vector3.zero;
+        verticalVelocity = 0f;
+        isDashing = false;
+        StopSlide();
+
+        controller.enabled = wasEnabled;
+        Physics.SyncTransforms();
+    }
+
+    /// <summary>
+    /// РўРѕР»С‡РѕРє РѕС‚ СѓРґР°СЂР° РІСЂР°РіР° / РІР·СЂС‹РІР°.
+    /// </summary>
+    public void AddImpulse(Vector3 impulse)
+    {
+        horizontalVelocity += new Vector3(impulse.x, 0f, impulse.z);
+        LimitHorizontalSpeed();
+
+        if (impulse.y > 0f)
+            verticalVelocity = Mathf.Max(verticalVelocity, impulse.y);
+    }
 
     public bool IsDashing => isDashing;
 

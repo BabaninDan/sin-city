@@ -94,6 +94,12 @@ public class PlayerCamera : MonoBehaviour
         LockCursor();
     }
 
+    public static void SetCursorLocked(bool locked)
+    {
+        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !locked;
+    }
+
     private void LockCursor()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -119,17 +125,21 @@ public class PlayerCamera : MonoBehaviour
         if (player == null)
             return;
 
+        // РћС‚РєСЂС‹С‚Рѕ РјРµРЅСЋ / РёРіСЂРѕРє РјС‘СЂС‚РІ вЂ” РјС‹С€СЊ РЅРµ РєСЂСѓС‚РёС‚ РєР°РјРµСЂСѓ
+        if (GameState.InputBlocked || GameState.PlayerDead)
+            return;
+
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        // Горизонтальный поворот игрока — мгновенный
+        // Р“РѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅС‹Р№ РїРѕРІРѕСЂРѕС‚ РёРіСЂРѕРєР° вЂ” РјРіРЅРѕРІРµРЅРЅС‹Р№
         player.Rotate(Vector3.up * mouseX);
 
-        // Вертикальный поворот камеры — мгновенный
+        // Р’РµСЂС‚РёРєР°Р»СЊРЅС‹Р№ РїРѕРІРѕСЂРѕС‚ РєР°РјРµСЂС‹ вЂ” РјРіРЅРѕРІРµРЅРЅС‹Р№
         pitch -= mouseY;
         pitch = Mathf.Clamp(pitch, -maxLookAngle, maxLookAngle);
 
-        // Наклон камеры при стрейфе
+        // РќР°РєР»РѕРЅ РєР°РјРµСЂС‹ РїСЂРё СЃС‚СЂРµР№С„Рµ
         float targetRoll = 0f;
 
         if (movement != null)
@@ -141,24 +151,24 @@ public class PlayerCamera : MonoBehaviour
 
             if (localVelocity.x < -0.1f)
             {
-                // Движение влево
+                // Р”РІРёР¶РµРЅРёРµ РІР»РµРІРѕ
                 targetRoll = rollAngle;
             }
             else if (localVelocity.x > 0.1f)
             {
-                // Движение вправо
+                // Р”РІРёР¶РµРЅРёРµ РІРїСЂР°РІРѕ
                 targetRoll = -rollAngle;
             }
         }
 
-        // Плавность оставляем только для наклона
+        // РџР»Р°РІРЅРѕСЃС‚СЊ РѕСЃС‚Р°РІР»СЏРµРј С‚РѕР»СЊРєРѕ РґР»СЏ РЅР°РєР»РѕРЅР°
         currentRoll = Mathf.Lerp(
             currentRoll,
             targetRoll,
             rollSpeed * Time.deltaTime
         );
 
-        // Итоговый поворот камеры
+        // РС‚РѕРіРѕРІС‹Р№ РїРѕРІРѕСЂРѕС‚ РєР°РјРµСЂС‹
         transform.localRotation = Quaternion.Euler(
             pitch + currentTilt,
             0f,
@@ -183,12 +193,12 @@ public class PlayerCamera : MonoBehaviour
 
             if (velocity.y > 0.1f)
             {
-                // Игрок летит вверх
+                // РРіСЂРѕРє Р»РµС‚РёС‚ РІРІРµСЂС…
                 targetTilt = jumpTilt;
             }
             else if (velocity.y < -0.1f)
             {
-                // Игрок падает
+                // РРіСЂРѕРє РїР°РґР°РµС‚
                 targetTilt = fallTilt;
             }
         }
@@ -211,7 +221,7 @@ public class PlayerCamera : MonoBehaviour
 
         bool grounded = movement.IsGrounded;
 
-        // Был в воздухе  стал на земле
+        // Р‘С‹Р» РІ РІРѕР·РґСѓС…Рµ  СЃС‚Р°Р» РЅР° Р·РµРјР»Рµ
         if (!wasGrounded && grounded)
         {
             StartLanding();
@@ -219,7 +229,7 @@ public class PlayerCamera : MonoBehaviour
 
         wasGrounded = grounded;
 
-        // Анимация приземления
+        // РђРЅРёРјР°С†РёСЏ РїСЂРёР·РµРјР»РµРЅРёСЏ
         if (landingTimer > 0f)
         {
             landingTimer -= Time.deltaTime;
@@ -242,7 +252,7 @@ public class PlayerCamera : MonoBehaviour
         }
         else
         {
-            // Возврат камеры в центр
+            // Р’РѕР·РІСЂР°С‚ РєР°РјРµСЂС‹ РІ С†РµРЅС‚СЂ
             transform.localPosition = Vector3.Lerp(
                 transform.localPosition,
                 initialLocalPosition,
@@ -255,7 +265,7 @@ public class PlayerCamera : MonoBehaviour
     {
         landingTimer = landingDuration;
 
-        // Небольшой удар камеры
+        // РќРµР±РѕР»СЊС€РѕР№ СѓРґР°СЂ РєР°РјРµСЂС‹
         Shake(0.08f, 0.1f);
     }
 
@@ -335,12 +345,12 @@ public class PlayerCamera : MonoBehaviour
 
         float progress = 1f - (shakeTimer / shakeDuration);
 
-        // Плавное затухание
+        // РџР»Р°РІРЅРѕРµ Р·Р°С‚СѓС…Р°РЅРёРµ
         float fade = 1f - Mathf.SmoothStep(0f, 1f, progress);
 
         float time = Time.time * shakeFrequency;
 
-        // Плавное псевдослучайное движение
+        // РџР»Р°РІРЅРѕРµ РїСЃРµРІРґРѕСЃР»СѓС‡Р°Р№РЅРѕРµ РґРІРёР¶РµРЅРёРµ
         float x = Mathf.Sin(time * 1.1f);
         float y = Mathf.Sin(time * 1.7f + 2f);
         float z = Mathf.Sin(time * 1.3f + 4f);
@@ -349,17 +359,28 @@ public class PlayerCamera : MonoBehaviour
 
         targetShake *= shakeIntensity * fade;
 
-        // Плавно двигаемся к новой позиции
+        // РџР»Р°РІРЅРѕ РґРІРёРіР°РµРјСЃСЏ Рє РЅРѕРІРѕР№ РїРѕР·РёС†РёРё
         shakeOffset = Vector3.Lerp(
             shakeOffset,
             targetShake,
             12f * Time.deltaTime
         );
+
+        // РџРѕРІРѕСЂРѕС‚РЅР°СЏ С‚СЂСЏСЃРєР° вЂ” РІРёРґРЅР°, РґР°Р¶Рµ РєРѕРіРґР° РёРіСЂРѕРє СЃС‚РѕРёС‚.
+        // HandleLook РєР°Р¶РґС‹Р№ РєР°РґСЂ РІС‹СЃС‚Р°РІР»СЏРµС‚ РїРѕРІРѕСЂРѕС‚ Р·Р°РЅРѕРІРѕ, РїРѕСЌС‚РѕРјСѓ РЅРµ РЅР°РєР°РїР»РёРІР°РµС‚СЃСЏ.
+        if (!GameState.InputBlocked && !GameState.PlayerDead)
+        {
+            transform.localRotation *= Quaternion.Euler(
+                shakeOffset.y * 20f,
+                shakeOffset.x * 20f,
+                shakeOffset.z * 12f
+            );
+        }
     }
     
 
     /// <summary>
-    /// Shake камеры с параметрами по умолчанию.
+    /// Shake РєР°РјРµСЂС‹ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ.
     /// </summary>
     public void Shake()
     {
@@ -370,12 +391,17 @@ public class PlayerCamera : MonoBehaviour
     }
 
     /// <summary>
-    /// Shake камеры.
+    /// Shake РєР°РјРµСЂС‹.
     /// </summary>
     public void Shake(float intensity, float duration)
     {
+        // РќРµ РїРµСЂРµР±РёРІР°РµРј Р±РѕР»РµРµ СЃРёР»СЊРЅСѓСЋ С‚СЂСЏСЃРєСѓ СЃР»Р°Р±РѕР№
+        if (shakeTimer > 0f && intensity < shakeIntensity * (shakeTimer / Mathf.Max(0.0001f, shakeDuration)))
+            return;
+
         shakeIntensity = intensity;
         shakeTimer = duration;
+        shakeDuration = Mathf.Max(0.0001f, duration);
 
         OnShake?.Invoke();
     }

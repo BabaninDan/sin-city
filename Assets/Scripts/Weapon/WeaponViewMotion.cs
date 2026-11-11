@@ -83,7 +83,7 @@ public class WeaponViewMotion : MonoBehaviour
 
     private void HandleGroundMovement(bool grounded)
     {
-        // В воздухе полностью отключаем ground bob
+        // Р’ РІРѕР·РґСѓС…Рµ РїРѕР»РЅРѕСЃС‚СЊСЋ РѕС‚РєР»СЋС‡Р°РµРј ground bob
         if (!grounded)
             return;
 
@@ -108,7 +108,7 @@ public class WeaponViewMotion : MonoBehaviour
         if (!movement.IsGrounded || speed < 0.1f)
             return Vector3.zero;
 
-        // Форма 
+        // Р¤РѕСЂРјР° 
         float x = Mathf.Sin(movementTime);
         float y = Mathf.Sin(movementTime * 2f);
 
@@ -125,13 +125,13 @@ public class WeaponViewMotion : MonoBehaviour
 
     private void HandleJump(bool grounded)
     {
-        // Только что прыгнули
+        // РўРѕР»СЊРєРѕ С‡С‚Рѕ РїСЂС‹РіРЅСѓР»Рё
         if (!grounded && wasGrounded)
         {
             targetJumpOffset = jumpOffset;
         }
 
-        // На земле возвращаемся
+        // РќР° Р·РµРјР»Рµ РІРѕР·РІСЂР°С‰Р°РµРјСЃСЏ
         if (grounded)
         {
             targetJumpOffset = 0f;
@@ -161,12 +161,12 @@ public class WeaponViewMotion : MonoBehaviour
             return;
         }
 
-        // Получаем вертикальную скорость
+        // РџРѕР»СѓС‡Р°РµРј РІРµСЂС‚РёРєР°Р»СЊРЅСѓСЋ СЃРєРѕСЂРѕСЃС‚СЊ
         float verticalVelocity = movement.Velocity.y;
 
         if (verticalVelocity < 0f)
         {
-            // Игрок падает
+            // РРіСЂРѕРє РїР°РґР°РµС‚
             currentFallingOffset = Mathf.Lerp(
                 currentFallingOffset,
                 fallingOffset,
@@ -175,7 +175,7 @@ public class WeaponViewMotion : MonoBehaviour
         }
         else
         {
-            // Игрок ещё летит вверх
+            // РРіСЂРѕРє РµС‰С‘ Р»РµС‚РёС‚ РІРІРµСЂС…
             currentFallingOffset = Mathf.Lerp(
                 currentFallingOffset,
                 0f,
@@ -201,7 +201,7 @@ public class WeaponViewMotion : MonoBehaviour
             return;
         }
 
-        // Переводим мировую скорость в локальные координаты игрока
+        // РџРµСЂРµРІРѕРґРёРј РјРёСЂРѕРІСѓСЋ СЃРєРѕСЂРѕСЃС‚СЊ РІ Р»РѕРєР°Р»СЊРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РёРіСЂРѕРєР°
         Vector3 localVelocity =
             transform.parent.parent.InverseTransformDirection(
                 movement.HorizontalVelocity
@@ -209,7 +209,7 @@ public class WeaponViewMotion : MonoBehaviour
 
         float horizontalSpeed = localVelocity.x;
 
-        // Движение вправо
+        // Р”РІРёР¶РµРЅРёРµ РІРїСЂР°РІРѕ
         if (horizontalSpeed > 0.1f)
         {
             currentAirTilt = Mathf.Lerp(
@@ -218,7 +218,7 @@ public class WeaponViewMotion : MonoBehaviour
                 airStrafeTiltSmooth * Time.deltaTime
             );
         }
-        // Движение влево
+        // Р”РІРёР¶РµРЅРёРµ РІР»РµРІРѕ
         else if (horizontalSpeed < -0.1f)
         {
             currentAirTilt = Mathf.Lerp(
@@ -243,7 +243,7 @@ public class WeaponViewMotion : MonoBehaviour
 
     private void HandleLanding(bool grounded)
     {
-        // Воздух земля
+        // Р’РѕР·РґСѓС… Р·РµРјР»СЏ
         if (grounded && !wasGrounded)
         {
             landingTimer = landingDuration;
@@ -277,16 +277,16 @@ public class WeaponViewMotion : MonoBehaviour
     {
         Vector3 targetPosition = initialPosition;
 
-        // Только на земле
+        // РўРѕР»СЊРєРѕ РЅР° Р·РµРјР»Рµ
         targetPosition += GetInfinityOffset();
 
-        // Прыжок
+        // РџСЂС‹Р¶РѕРє
         targetPosition.y += currentJumpOffset;
 
-        // При падении тянемся вверх
+        // РџСЂРё РїР°РґРµРЅРёРё С‚СЏРЅРµРјСЃСЏ РІРІРµСЂС…
         targetPosition.y += currentFallingOffset;
 
-        // Удар при приземлении
+        // РЈРґР°СЂ РїСЂРё РїСЂРёР·РµРјР»РµРЅРёРё
         targetPosition.y += GetLandingOffset();
 
         transform.localPosition = Vector3.Lerp(

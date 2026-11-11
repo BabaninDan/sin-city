@@ -1,107 +1,69 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class CardDeck : MonoBehaviour
+/// <summary>
+/// Колода из набора карт. Карты тянутся из перемешанной стопки,
+/// когда стопка кончается — сброс перемешивается обратно.
+/// Это обычный класс (не MonoBehaviour), им владеет WeaponController.
+/// </summary>
+public class CardDeck
 {
-    [SerializeField] private WeaponData weaponData;
+    private readonly List<CardData> source = new List<CardData>();
+    private readonly List<CardData> drawPile = new List<CardData>();
 
-    private CardData currentCard;
+    public int Count => source.Count;
 
-    private int cardsThrown;
-
-    private CardData[] deck;
-
-    public CardData CurrentCard => currentCard;
-
-    public int CardsThrown => cardsThrown;
-
-    public int MaxCards
+    public CardDeck(IEnumerable<CardData> cards)
     {
-        get
+        if (cards != null)
         {
-            if (weaponData == null)
-                return 0;
+            foreach (CardData card in cards)
+            {
+                if (card != null)
+                    source.Add(card);
+            }
+        }
 
-            return weaponData.maxCards;
+        Shuffle();
+    }
+
+    public void Shuffle()
+    {
+        drawPile.Clear();
+        drawPile.AddRange(source);
+
+        // Фишер — Йетс
+        for (int i = drawPile.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (drawPile[i], drawPile[j]) = (drawPile[j], drawPile[i]);
         }
     }
 
-    public bool IsEmpty
+    public CardData Draw()
     {
-        get
-        {
-            return currentCard == null;
-        }
-    }
-
-    private void Awake()
-    {
-        CreateDeck();
-        DrawNextCard();
-    }
-
-    private void CreateDeck()
-    {
-        if (weaponData == null)
-        {
-            Debug.LogError(
-                "CardDeck: WeaponData �� ��������!",
-                gameObject
-            );
-
-            return;
-        }
-
-        deck = weaponData.normalCards;
-    }
-
-    public CardData DrawNextCard()
-    {
-        if (deck == null || deck.Length == 0)
-        {
-            Debug.LogError(
-                "CardDeck: � WeaponData ��� normalCards!",
-                gameObject
-            );
-
-            return null;
-        }
-
-        CardData newCard =
-            deck[Random.Range(0, deck.Length)];
-
-        currentCard = newCard;
-
-        return currentCard;
-    }
-
-    public CardData ThrowCurrentCard()
-    {
-        if (currentCard == null)
+        if (source.Count == 0)
             return null;
 
-        CardData thrownCard = currentCard;
+        if (drawPile.Count == 0)
+            Shuffle();
 
-        cardsThrown++;
+        int last = drawPile.Count - 1;
+        CardData card = drawPile[last];
+        drawPile.RemoveAt(last);
 
-        currentCard = null;
-
-        return thrownCard;
+        return card;
     }
 
-    public bool CanThrow()
+    /// <summary>Подсмотреть следующую карту, не вытягивая её.</summary>
+    public CardData Peek()
     {
-        return currentCard != null;
-    }
+        if (source.Count == 0)
+            return null;
 
-    public bool NeedsReload()
-    {
-        return cardsThrown >= MaxCards;
-    }
+        if (drawPile.Count == 0)
+            Shuffle();
 
-    public void ResetDeck()
-    {
-        cardsThrown = 0;
-
-        DrawNextCard();
+        return drawPile[drawPile.Count - 1];
     }
 }

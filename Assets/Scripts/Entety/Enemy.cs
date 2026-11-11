@@ -8,7 +8,7 @@ public class Enemy : MonoBehaviour, IDamageable
     {
         health -= damage;
 
-        Debug.Log($"Враг получил {damage} урона. Осталось HP: {health}");
+        Debug.Log($"Р’СЂР°Рі РїРѕР»СѓС‡РёР» {damage} СѓСЂРѕРЅР°. РћСЃС‚Р°Р»РѕСЃСЊ HP: {health}");
 
         if (health <= 0f)
         {

@@ -69,6 +69,28 @@ public class CardData : ScriptableObject
         return damage;
     }
 
+    public bool IsRed => suit.IsRed();
+
+    /// <summary>"Q♥" — для HUD.</summary>
+    public string GetDisplayName()
+    {
+        return GetRankName() + suit.Symbol();
+    }
+
+    /// <summary>Описание особого эффекта J/Q/K/A.</summary>
+    public string GetEffectName()
+    {
+        switch (rank)
+        {
+            case CardRank.Jack: return "Валет: пробивает насквозь";
+            case CardRank.Queen: return "Дама: самонаведение";
+            case CardRank.King: return "Король: взрыв";
+            case CardRank.Ace: return "Туз: рикошет по врагам";
+        }
+
+        return "";
+    }
+
     public string GetShortName()
     {
         string rankName = GetRankName();
