@@ -1,0 +1,414 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a88c8a3ff11450b94453ed26fba8f5c, type: 3}
+  m_Name: Tremble Sync Settings
+  m_EditorClassIdentifier: TinyGoose.Tremble::TinyGoose.Tremble.TrembleSyncSettings
+  m_ShowExpanded: 1
+  m_AutoSyncOnCompile: 1
+  m_AllowStandaloneImport: 0
+  m_TrenchBroomVersion: 3
+  m_TemplateMap: {fileID: 0}
+  m_WorldspawnScript:
+    m_ScriptName: 
+  m_TypeNamingConvention: 3
+  m_FieldNamingConvention: 0
+  m_SpawnFlagNamingConvention: 4
+  m_MaterialNamingConvention: 3
+  m_IdentityPropertyName: targetname
+  m_MaterialGroups: []
+  m_MaterialRenderData:
+  - m_Material: {fileID: 2100000, guid: e6b9b44320f4448d9d5e0ee634259966, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 3b5cc91c3bf8cf74391252247f52fb59, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: c719e38f25a9480abd2480ab621a2949, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: aadd5a709a48466c887296bb5b1b8110, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 71529b88994c1a341b22bc57c038674a, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 22262639920f43d6be32430e4e58350d, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 749b9069dc4742c5bfa5c74644049926, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: a00013af81304728b2be1f4309ee2433, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 6522f30e342599e4e9dd4cc2cc03c830, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 947a44964e53bf0448ff698b2a2219c0, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: f2dcf029949142e28b974630369c8b4e, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: f629c6e43dba4bf38cb74d8860150664, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: d75b8f41e959450c84ac6e967084d3e1, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 6751ce1a4611b3940812c13a6847d94f, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: f4e195ac1e204eff960149d1cb34e18c, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 8b29aaa3eec7468097ff07adfcf29ac9, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 9ad269c99dcf42b7aedefd83dd5a7b9d, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 42df1c7856584b6b8db9a509b6b10074, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: b246c4190f4e46ec9352fe15a7b09ce0, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 2ddca8f46aa0838419d568affb0ca6b4, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: e6b276ec991f467aa14ef1f3cc665993, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 90722b8bd74d9aa49958562aff7bdf76, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 8d176c01131de8f46ad61094e29d79b2, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 967f61bb1e3e28645a39e0cb647cc79e, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 79459efec17a4d00a321bdcc27bbc385, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 03f267a58cad86640af8eef6ef59aebc, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 43f1b053ca8ca324685df596d3883e0d, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: a2e0997ad710a4b459759e528f94e69d, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 052f626402492dd43a2d17e74ea65952, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 64ae7256a904a2345919a4a875531a23, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 1b12c5cb38ea12e47abb30b06cdfbd5f, type: 2}
+    m_ExportMode: 0
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  - m_Material: {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+    m_ExportMode: 1
+    m_IsResolutionOverridden: 0
+    m_ResolutionX: 2
+    m_ResolutionY: 2
+    m_Dirty: 0
+  m_PipelineSplitMesh: 1
+  m_PipelineSmoothMeshNormals: 1
+  m_PipelineSimplifyCollisionMeshes: 1
+  m_PipelineUnwrapUV2: 1
+  m_PipelineRunMapProcessors: 1
+  m_MapProcessors: []
+  m_LogOnImportAndSync: 0
+  m_UseLiveUpdate: 1
+  m_AutomaticallyReimportWhenDependencyChanges: 1
+  m_EntityIconStyle: 1
+  m_PrefabOverrideHandling: 2
+  m_UseClassicQuakeCulling: 0
+  m_Q3Map2ResultDisplayType: 1
+  m_EmbedTrembleSettingsInProjectSettings: 1
+  m_FgdFormattingStyle: 1
+  m_SubdivideAllLeafs: 0
+  m_AlwaysPackBoolsIntoSpawnFlags: 1
+  m_SyncEnumsAsStringValue: 1
+  m_SyncSerializedFields: 1
+  m_SyncMaterialsAndPrefabs: 1
+  m_WorldspawnLayer: Default
+  m_DiscardMapGroups: 0
+  m_MainMeshName: worldspawn
+  m_AutoDeleteMapBackups: 0
+  m_ExtraCommandLineArgs: -threads 8 -meta -v
+  m_MaterialExportSize: 5
+  m_MaterialCaptureLightIntensity: 0.5
+  m_MaterialCaptureLightAngle: 0.75
+  m_ExportClipSkipTextures: 1
+  m_ImportScale: 0.015625
+  m_AssetMetadatas:
+  - MapName: PlayerPrefab1
+    Path: Assets/Prefab/PlayerPrefab 1.prefab
+    FullTypeName: UnityEngine.GameObject
+    SpawnOffset: {x: -5.8828216, y: -0.44000003, z: 3.2385893}
+  - MapName: game/Flor_Square
+    Path: Assets/Surface/Flor_Square.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LowerWall
+    Path: Assets/Surface/LowerWall.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/PaperWall
+    Path: Assets/Surface/PaperWall.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/UpperWall
+    Path: Assets/Surface/UpperWall.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Crate_-_Surface_Shader_Scene
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Crate - Surface Shader
+      Scene.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Crate_-_URP
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Crate - URP.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Ground_-_Logo_Scene
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Ground - Logo Scene.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Ground_-_Surface_Shader_Scene
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Ground - Surface Shader
+      Scene.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Ground_-_URP
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Ground - URP.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Small_Crate_diffuse
+    Path: Assets/TextMesh Pro/Examples & Extras/Materials/Small Crate_diffuse.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Anton_SDF_-_Drop_Shadow
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Anton
+      SDF - Drop Shadow.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Anton_SDF_-_Outline
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Anton
+      SDF - Outline.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Anton_SDF_-_Sunny_Days
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Anton
+      SDF - Sunny Days.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_-_Drop_Shadow_-_2_Pass
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF - Drop Shadow - 2 Pass.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_-_Drop_Shadow
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF - Drop Shadow.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_-_Outline
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF - Outline.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_Glow
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF Glow.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_Logo_-_URP
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF Logo - URP.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Bangers_SDF_Logo
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Bangers
+      SDF Logo.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LiberationSans_SDF_-_Metalic_Green
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/LiberationSans
+      SDF - Metalic Green.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LiberationSans_SDF_-_Overlay
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/LiberationSans
+      SDF - Overlay.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LiberationSans_SDF_-_Soft_Mask
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/LiberationSans
+      SDF - Soft Mask.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Roboto-Bold_SDF_-_Drop_Shadow
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Roboto-Bold
+      SDF - Drop Shadow.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Roboto-Bold_SDF_-_HDRP_Unlit
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Roboto-Bold
+      SDF - HDRP Unlit.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Roboto-Bold_SDF_-_Surface
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Roboto-Bold
+      SDF - Surface.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Roboto-Bold_SDF_-_URP
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Roboto-Bold
+      SDF - URP.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Unity_SDF_-_HDRP_LIT_-_Bloom
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Unity
+      SDF - HDRP LIT - Bloom.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/Unity_SDF_-_HDRP_LIT_-_Outline
+    Path: Assets/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Unity
+      SDF - HDRP LIT - Outline.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LiberationSans_SDF_-_Drop_Shadow
+    Path: Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Drop
+      Shadow.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/LiberationSans_SDF_-_Outline
+    Path: Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Outline.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/New_Material_1
+    Path: Assets/Texture/New Material 1.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: game/New_Material
+    Path: Assets/Texture/New Material.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
+  - MapName: Lit
+    Path: Packages/com.unity.render-pipelines.universal/Runtime/Materials/Lit.mat
+    FullTypeName: UnityEngine.Material
+    SpawnOffset: {x: 0, y: 0, z: 0}
